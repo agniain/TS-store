@@ -52,17 +52,17 @@ const store = async (req, res, next) => {
       }
     }
 
+    // Create a new order
+    let newOrder = new Order(payload);
+
     // Check user permissions
     let policy = defineAbilityFor(req.user);
-    if (!policy.can('create', Order)) {
+    if (!policy.can('create', 'Order')) {
       return res.json({
         error: 1,
         message: `You're not allowed to create orders.`,
       });
     }
-
-    // Create a new order
-    let newOrder = new Order(payload);
 
     // Save the order
     await newOrder.save();
@@ -136,7 +136,7 @@ const view = async (req, res, next) => {
 
     // Check user permissions
     let policy = defineAbilityFor(req.user);
-    if (!policy.can('read', orders[0])) {
+    if (!policy.can('read', 'Order')) {
       return res.json({
         error: 1,
         message: "You're not allowed to read the order",
@@ -168,7 +168,7 @@ const index = async (req, res, next) => {
   try {
     console.log("user ID for order:", req.user._id);
 
-    // Set default values for delivery_fee and status
+    // default values
     const defaultDeliveryFee = 30000;
     const defaultStatus = 'menunggu pembayaran';
 

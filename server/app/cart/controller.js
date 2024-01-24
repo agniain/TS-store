@@ -27,7 +27,7 @@ const store = async (req, res, next) => {
         if (existingCart) {
             // Cart exists, update it
             let policy = defineAbilityFor(req.user);
-            if (!policy.can('update', existingCart)) {
+            if (!policy.can('update', 'CartItem')) {
                 return res.json({
                     error: 1,
                     message: `You're not allowed to update the cart!`
@@ -62,7 +62,7 @@ const store = async (req, res, next) => {
             let createCart = new CartItem({ ...payload, user: user._id });
 
             let policy = defineAbilityFor(req.user);
-            if (!policy.can('create', createCart)) {
+            if (!policy.can('create', 'CartItem')) {
                 return res.json({
                     error: 1,
                     message: `You're not allowed to create a cart!`
@@ -94,7 +94,7 @@ const index = async (req, res, next) => {
 
         // Cart exists, check user permissions
         let policy = defineAbilityFor(req.user);
-        if (!policy.can('read', cart)) {
+        if (!policy.can('read', 'CartItem')) {
             return res.json({
                 error: 1,
                 message: "You're not allowed to read the cart"

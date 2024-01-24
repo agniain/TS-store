@@ -51,7 +51,7 @@ const index = async (req, res, next) => {
 
         // check user permissions
         let policy = defineAbilityFor(req.user);
-        if (!policy.can('read', user)) {
+        if (!policy.can('read', 'User')) {
             return res.json({
                 error: 1,
                 message: "You're not allowed to read the user data"

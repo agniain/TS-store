@@ -55,7 +55,7 @@ const Product = () => {
 
   return (
     <div className="container mx-auto mt-8">
-      <h1 className="text-2xl ml-5 mb-4">Katalog Produk</h1>
+      <h1 className="text-2xl ml-5 mb-4">A place for all swifties.</h1>
       <input
         type="text"
         placeholder="Cari Produk..."

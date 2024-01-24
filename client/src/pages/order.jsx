@@ -78,28 +78,35 @@ const Order = () => {
   };
 
   const calculateSubtotal = (products) => {
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      return 0;
+    }
+  
     return products.reduce((acc, product) => {
       return acc + product.quantity * product.productId.price;
     }, 0);
-  };
+  };  
 
   const placeOrder = async () => {
     try {
+      const isAuthenticated = localStorage.getItem("token") !== null;
+  
+      if (!isAuthenticated) {
+        throw new Error("User not authenticated");
+      }
+  
       const orderDetails = cartItems.products.map((item) => ({
-        user: item.user, 
+        user: userData._id,
         product: item.productId._id,
         quantity: item.quantity,
         price: item.productId.price,
       }));
-  
-      // Calculation
       
+      // Calculation
       const subTotal = calculateSubtotal(cartItems.products);
       const totalOrder = subTotal + deliveryFee;
-  
-      // Create the order payload with orderDetails
+
       const orderPayload = {
-        user: userData._id,
         order_details: orderDetails,
         delivery_address: deliveryAddress._id,
         delivery_fee: deliveryFee,
@@ -108,28 +115,29 @@ const Order = () => {
         status: statusPayment,
       };
   
-      const res = await axiosPostWithToken("/orders", orderPayload);
-
-if (res.data && res.data.order && res.data.order._id) {
-  setOrderId(res.data.order._id);
-  setIsOrderPlaced(true);
-
-  // Update the orderID in order details
-  const updatedOrderDetails = orderDetails.map((detail) => ({
-    ...detail,
-    order_id: res.data.order._id,
-  }));
-  console.log("Updated Order Details:", updatedOrderDetails);
-} else {
-  console.error("Error placing order: Order ID not available in the response");
-}
-
-
+      // Place order
+      const orderRes = await axiosPostWithToken("/orders", orderPayload);
   
-      // Clear the cart
-      await axiosDelete("/carts");
-    } catch (err) {
-      console.error("Error placing order:", err);
+      if (orderRes.data && orderRes.data.order && orderRes.data.order._id) {
+        setOrderId(orderRes.data.order._id);
+        setIsOrderPlaced(true);
+  
+        // Fetch order details from the server
+        const fetchedOrderDetailsRes = await axiosGetWithToken(`/orders`);
+  
+        if (fetchedOrderDetailsRes.data && fetchedOrderDetailsRes.data.order_details) {
+          // Clear the cart
+          await axiosDelete("/carts");
+        } else {
+          console.error("Error fetching order details");
+          // Optionally handle this case (e.g., show an error message to the user)
+        }
+      } else {
+        throw new Error("Error placing order: Order ID not available in the response");
+      }
+    } catch (placeOrderError) {
+      console.error("Error placing order:", placeOrderError.message);
+      // Optionally handle this case (e.g., show an error message to the user)
     }
   };
 
