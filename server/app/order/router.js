@@ -11,9 +11,16 @@ router.post(
 );
 
 router.get(
+    '/orders/users',
+    passport.authenticate('bearer', { session: false }), 
+    police_check('read', 'Order'),
+    orderController.view
+);
+
+router.get(
     '/orders',
     passport.authenticate('bearer', { session: false }), 
-    police_check('view', 'Order'),
+    police_check('read', 'Order'),
     orderController.index
 );
 

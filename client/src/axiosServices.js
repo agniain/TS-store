@@ -38,6 +38,18 @@ export const axiosPost = (url, data) => {
     });
 };
 
+export const axiosPostWithToken = (url, data) => {
+    const resource = baseURL + url;
+    console.log(resource);
+
+    return axios.post(resource, data, {
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`,
+        },
+    });
+};
+
 export const axiosRegister = async (url, data) => {
     return axios.post(`${authURL}${url}`, data, {
             headers: {
@@ -63,6 +75,18 @@ export const axiosLogin = async (url, data) => {
         throw error;
     }
 };
+
+export const axiosGetUser = (url) => {
+    const resource = authURL + url;
+    console.log(resource);
+
+    return axios.get(resource, {
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`,
+        },
+    });
+}
 
 export const axiosDelete = (url) => {
     return axios.delete(`${baseURL}${url}`, {

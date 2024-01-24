@@ -3,6 +3,7 @@ const authController = require('./controller');
 const passport = require('passport');
 var LocalStrategy = require('passport-local');
 const User = require('../user/model');
+const { police_check } = require('../../middlewares');
 
 passport.use(authController.strategy);
 passport.use(new LocalStrategy(function verify(email, password, cb) {
@@ -32,7 +33,12 @@ router.post('/logout', function (req, res, next) {
 
 router.get('/me', passport.authenticate('bearer', { session: false }), authController.me);
 
-router.get('/users', authController.index);
+router.get(
+    '/users', 
+    passport.authenticate('bearer', { session: false }),
+    police_check('read', 'User'),
+    authController.index
+);
 
 
 module.exports = router;

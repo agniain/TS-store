@@ -41,9 +41,9 @@ const index = async (req, res, next) => {
 
 const getProductsByCategory = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const { name } = req.params;
 
-        const category = await Category.findById(id);
+        const category = await Category.findOne({ name });
         if (!category) {
             return res.status(404).json({ error: 'Category not found' });
         }
@@ -58,6 +58,7 @@ const getProductsByCategory = async (req, res, next) => {
         next(err);
     }
 };
+
 
 const destroy = async (req, res, next) => {
     try {

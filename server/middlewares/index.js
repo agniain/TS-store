@@ -62,14 +62,14 @@ function defineAbilityFor(user) {
       // User permissions
       if (user.role === 'user') {
         console.log('masuk', user.role)
-        can('view', 'Order');
         can('create', 'Order');
         can('read', 'Order');
+        can('read', 'User')
         can('update', 'User');
         can('create', 'CartItem')
         can('read', 'CartItem');
         can('update', 'CartItem');
-        can('view', 'DeliveryAddress');
+        can('read', 'DeliveryAddress');
         can('create', 'DeliveryAddress');
         can('update', 'DeliveryAddress');
         can('delete', 'DeliveryAddress');

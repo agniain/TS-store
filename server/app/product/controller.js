@@ -140,14 +140,13 @@ const index = async (req, res, next) => {
 const view = async (req, res) => {
     try {
         const { id } = req.params;
-        const product = await Product.findOne({ id: id })
-        res.json(product)
-    }
-    catch(error){
+        const product = await Product.findById(id).populate('category tags');
+        res.json(product);
+    } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
-    };
-}
+    }
+};
 
 const update = async (req, res, next) => {
     try{

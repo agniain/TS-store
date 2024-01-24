@@ -3,37 +3,34 @@ const OrderDetail = require('./orderDetailModel');
 
 const orderSchema = new mongoose.Schema({
 
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  order_details: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'OrderDetail',
     },
+  ],
+  sub_total: Number,
+  delivery_address: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'DeliveryAddress',
+  },
+  delivery_fee: {
+    type: Number,
+    required: true,
+    default: 30000,
+  },
+  
+  total_order: Number, 
 
-    order_details: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'OrderDetail',
-        },
-    ],    
-
-    sub_total: Number,
-        
-    delivery_address: {
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'DeliveryAddress' 
-    },
-
-    delivery_fee: {
-        type: Number,
-        required: true,
-    },
-
-    totalOrder: Number,
-
-    status: {
-        type: String,
-        enum: ['waiting_payment', 'processing', 'in_delivery', 'delivered'],
-        default: 'waiting_payment'
-    },
+  status: {
+    type: String,
+    enum: ['menunggu pembayaran', 'diproses', 'di perjalanan', 'diantar'],
+    default: 'menunggu pembayaran',
+  },
 
 }, { timestamps: true });
 
@@ -53,7 +50,7 @@ orderSchema.methods.calculateTotal = async function () {
   
       // Update
       this.sub_total = subTotal;
-      this.totalOrder = totalOrder;
+      this.total_order = totalOrder;
     } catch (error) {
       throw error;
     }

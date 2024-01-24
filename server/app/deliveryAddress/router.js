@@ -6,7 +6,7 @@ const passport = require('passport');
 router.get(
     '/delivery-address',
     passport.authenticate('bearer', { session: false }),
-    police_check('view', 'DeliveryAddress'),
+    police_check('read', 'DeliveryAddress'),
     deliveryAddressController.index
 );
 

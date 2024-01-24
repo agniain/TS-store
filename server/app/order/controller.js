@@ -78,7 +78,7 @@ const store = async (req, res, next) => {
           product: productDocument._id,
           quantity: product.quantity,
           price: productDocument.price,
-          orderID: newOrder._id,
+          order_id: newOrder._id,
         });
         orderDetails.push(orderDetail._id);
       }
@@ -89,6 +89,7 @@ const store = async (req, res, next) => {
 
     // update order_details field
     await newOrder.save();
+    console.log('Order ID:', newOrder._id);
 
     // Clear cart    
     await clearUserCart(req.user._id);
@@ -115,37 +116,82 @@ const store = async (req, res, next) => {
   }
 };
 
+const view = async (req, res, next) => {
+  try {
+    let { skip = 0, limit = 10 } = req.query;
+    console.log("user ID for order:", req.user._id);
 
-const index = async(req, res, next) => {
-    try {
-        console.log('User ID:', req.user._id);
-        let {skip = 0, limit = 10} = req.query;
-        let count = await Order.find({user: req.user._id}).countDocuments();
-        let orders =
-            await Order.find({user: req.user._id})
-            .find({user: req.user._id})
-            .skip(parseInt(skip))
-            .limit(parseInt(limit))
-            .populate('order_details')
-            .sort('-createdAt');
-        return res.json({
-        data: orders.map(order => order.toJSON({virtuals: true})),
-        count
-        })
-    } catch (err) {
-        if(err && err.name === 'ValidationError'){
-            return res.json({
-                error: 1,
-                message: err.message,
-                fields: err.errors
-            });
-        }
+    const orders = await Order.find({ user: req.user._id })
+      .skip(parseInt(skip))
+      .limit(parseInt(limit))
+      .populate('order_details')
+      .sort('-createdAt');
 
-        next(err);
+    if (!orders || orders.length === 0) {
+      return res.json({
+        error: 1,
+        message: "Order not found for the user",
+      });
     }
-}
+
+    // Check user permissions
+    let policy = defineAbilityFor(req.user);
+    if (!policy.can('read', orders[0])) {
+      return res.json({
+        error: 1,
+        message: "You're not allowed to read the order",
+      });
+    }
+    console.log({delivery_fee: orders.delivery_fee,
+      status: orders.status,})
+    return res.json({
+      data: {
+        order: orders.toJSON({ virtuals: true }),
+        delivery_fee: orders.delivery_fee,
+        status: orders.status,
+      },
+      count: orders.length
+    });
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.json({
+        error: 1,
+        message: err.message,
+        fields: err.errors,
+      });
+    }
+    next(err);
+  }
+};
+
+const index = async (req, res, next) => {
+  try {
+    console.log("user ID for order:", req.user._id);
+
+    // Set default values for delivery_fee and status
+    const defaultDeliveryFee = 30000;
+    const defaultStatus = 'menunggu pembayaran';
+
+    const defaultOrderData = {
+      status: defaultStatus,
+      delivery_fee: defaultDeliveryFee,
+    };
+
+    return res.json([defaultOrderData]);
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.json({
+        error: 1,
+        message: err.message,
+        fields: err.errors,
+      });
+    }
+    next(err);
+  }
+};
 
 module.exports = {
     store,
+    view,
     index
 }

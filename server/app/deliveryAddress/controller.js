@@ -67,21 +67,39 @@ const update = async (req, res, next) => {
     }
 }
 
+
 const index = async (req, res, next) => {
     try {
-        let {skip = 0, limit = 10} = req.query;
-        let count = await DeliveryAddress.find({user: req.user_id}).countDocuments();
-        let address = 
-            await DeliveryAddress
-            .find({user: req.user._id})
-            .skip(parseInt(skip))
-            .limit(parseInt(limit))
-            .sort('-createdAt');
-        
-        return res.json({data: address, count});
-        
-    }   catch (error) {
-        throw error
+        console.log("user ID for address:", req.user._id);
+        const address = await DeliveryAddress.findOne({ user: req.user._id })
+
+        if (!address) {
+            return res.json({
+                error: 1,
+                message: "Address not found for the user"
+            });
+        }
+
+        // check user permissions
+        let policy = defineAbilityFor(req.user);
+        if (!policy.can('read', address)) {
+            return res.json({
+                error: 1,
+                message: "You're not allowed to read the address"
+            });
+        }
+
+        return res.json(address);
+
+    } catch (err) {
+        if (err.name === 'ValidationError') {
+            return res.json({
+                error: 1,
+                message: err.message,
+                fields: err.errors
+            });
+        }
+        next(err);
     }
 };
 

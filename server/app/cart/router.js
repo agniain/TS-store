@@ -17,4 +17,17 @@ router.get(
     cartController.index
 )
 
+router.get(
+    '/carts/:id',
+    passport.authenticate('bearer', { session: false }),
+    police_check('read', 'CartItem'),
+    cartController.index
+)
+
+router.get(
+    '/carts/:id',
+    passport.authenticate('bearer', { session: false }),
+    police_check('read', 'CartItem'),
+    cartController.view
+)
 module.exports = router;

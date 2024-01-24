@@ -76,14 +76,64 @@ const store = async (req, res, next) => {
     }
 };
 
-const index = async(req, res, next) => {
+
+const index = async (req, res, next) => {
     try {
-        let items = 
+        console.log("user ID for cart:", req.user._id);
+        const cart = await CartItem.findOne({ user: req.user._id }).populate({
+            path: 'products.productId', 
+            select: 'name price image_url' 
+        });
+
+        if (!cart) {
+            return res.json({
+                error: 1,
+                message: "Cart not found for the user"
+            });
+        }
+
+        // Cart exists, check user permissions
+        let policy = defineAbilityFor(req.user);
+        if (!policy.can('read', cart)) {
+            return res.json({
+                error: 1,
+                message: "You're not allowed to read the cart"
+            });
+        }
+
+        return res.json(cart);
+
+    } catch (err) {
+        if (err.name === 'ValidationError') {
+            return res.json({
+                error: 1,
+                message: err.message,
+                fields: err.errors
+            });
+        }
+        next(err);
+    }
+};
+
+
+
+const view = async(req, res, next) => {
+    try {
+        const cartId = req.params.id;
+        let carts = 
         await CartItem
-        .find({user: req.user._id})
+        .findOne({ _id: cartId, user: req.user._id })
         .populate('products');
 
-        return res.json(items);
+        let policy = defineAbilityFor(req.user);
+            if (!policy.can('read', carts)) {
+                return res.json({
+                    error: 1,
+                    message: `You're not allowed to read a cart!`
+                });
+            }
+
+        return res.json(carts);
 
     }   catch (err) {
         if(err && err.name == 'ValidationError'){
@@ -100,4 +150,5 @@ const index = async(req, res, next) => {
 module.exports = {
     store,
     index,
+    view
 }

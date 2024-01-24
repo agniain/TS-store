@@ -3,7 +3,7 @@ const categoryController = require('./controller');
 
 router.get('/categories', categoryController.index);
 
-router.get('/categories/:id/products', categoryController.getProductsByCategory);
+router.get('/categories/:name/products', categoryController.getProductsByCategory);
 
 router.post('/categories', categoryController.store);
 

@@ -4,6 +4,7 @@ const config = require('../config');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
+const { defineAbilityFor } = require('../../middlewares');
 
 const register = async(req, res, next) => {
     try{
@@ -37,13 +38,40 @@ const register = async(req, res, next) => {
 
 const index = async (req, res, next) => {
     try {
-        const user = await User.find();
+        // Access user data directly from req.user
+        const user = req.user;
+        console.log('get user data', req.user)
+
+        if (!user) {
+            return res.json({
+                error: 1,
+                message: "User data not found for the user"
+            });
+        }
+
+        // check user permissions
+        let policy = defineAbilityFor(req.user);
+        if (!policy.can('read', user)) {
+            return res.json({
+                error: 1,
+                message: "You're not allowed to read the user data"
+            });
+        }
+
         return res.json(user);
-        
-    }   catch (error) {
-        throw error
+
+    } catch (err) {
+        if (err.name === 'ValidationError') {
+            return res.json({
+                error: 1,
+                message: err.message,
+                fields: err.errors
+            });
+        }
+        next(err);
     }
 };
+
 
 const strategy = new LocalStrategy(function verify(email, password, cb) {
     db.get('SELECT * FROM users WHERE email = ?', [ email ], function(err, user) {
