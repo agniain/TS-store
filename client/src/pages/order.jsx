@@ -122,7 +122,6 @@ const Order = () => {
         setOrderId(orderRes.data.order._id);
         setIsOrderPlaced(true);
   
-        // Fetch order details from the server
         const fetchedOrderDetailsRes = await axiosGetWithToken(`/orders`);
   
         if (fetchedOrderDetailsRes.data && fetchedOrderDetailsRes.data.order_details) {
@@ -130,14 +129,12 @@ const Order = () => {
           await axiosDelete("/carts");
         } else {
           console.error("Error fetching order details");
-          // Optionally handle this case (e.g., show an error message to the user)
         }
       } else {
         throw new Error("Error placing order: Order ID not available in the response");
       }
     } catch (placeOrderError) {
       console.error("Error placing order:", placeOrderError.message);
-      // Optionally handle this case (e.g., show an error message to the user)
     }
   };
 

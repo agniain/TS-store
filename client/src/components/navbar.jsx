@@ -52,7 +52,7 @@ const Navbar = () => {
           </Link>
         </div>
       </div>
-    ) : (
+      ) : (
           <>
             <Link to='/register' className='py-1 px-6 hover:bg-slate-200'>
               Sign up

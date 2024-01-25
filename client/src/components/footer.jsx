@@ -8,15 +8,11 @@ const Footer = () => {
   return (
     <footer className="bg-sky-100 p-4 mt-8 w-full">
         <div className="container mx-auto flex justify-between items-center">
-        {/* About Us */}
         <Link to="/" className="text-black">
             About Us
         </Link>
 
-        {/* Location */}
         <p className="text-black"><LocationOnIcon /> Bandung, Indonesia</p>
-
-        {/* Contact */}
         <div className="flex items-center">
             <a href="https://instagram.com" className="text-black mx-2">
             <InstagramIcon />
