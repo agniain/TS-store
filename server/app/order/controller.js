@@ -23,9 +23,54 @@ const clearUserCart = async (userId) => {
   }
 };
 
+  const createOrderDetails = async (cartItemIds, orderId, userId) => {
+    const orderDetails = [];
+  
+    // Fetch cart items with populated products including product price
+    const cartItems = await CartItem.find({ _id: { $in: cartItemIds } }).populate({
+      path: 'products.productId',
+      select: '_id price',
+    });
+  
+    for (const cartItem of cartItems) {
+      const products = cartItem.products.map(product => ({
+        productId: product.productId._id,
+        quantity: product.quantity,
+        price: product.productId.price,
+      }));
+  
+      const orderDetail = await OrderDetail.create({
+        user: userId,
+        products: products,
+        sub_total: cartItem.sub_total,
+        delivery_fee: cartItem.delivery_fee,
+        total_order: cartItem.total_order,
+        order_id: orderId,
+      });
+  
+      orderDetails.push({
+        products: orderDetail.products.map(product => ({
+          productId: {
+            _id: product.productId._id,
+            price: product.price,
+          },
+          quantity: product.quantity,
+        })),
+        sub_total: orderDetail.sub_total,
+        delivery_fee: orderDetail.delivery_fee,
+        total_order: orderDetail.total_order,
+        order_id: orderDetail.order_id,
+        _id: orderDetail._id,
+      });
+    }
+  
+    return orderDetails;
+  };
+
+
+
 const store = async (req, res, next) => {
   try {
-    // Check if user is authenticated
     if (!req.user) {
       return res.status(401).json({ error: 1, message: 'User not authenticated' });
     }
@@ -55,7 +100,7 @@ const store = async (req, res, next) => {
     // Create a new order
     let newOrder = new Order(payload);
 
-    // Check user permissions
+    // Check permissions
     let policy = defineAbilityFor(req.user);
     if (!policy.can('create', 'Order')) {
       return res.json({
@@ -64,37 +109,19 @@ const store = async (req, res, next) => {
       });
     }
 
-    // Save the order
+    // Save order
     await newOrder.save();
 
     // Create order details
-    const orderDetails = [];
-    for (const cartItemId of payload.cart_items) {
-      const cartItem = await CartItem.findById(cartItemId);
-      for (const product of cartItem.products) {
-        const productDocument = await Product.findById(product.productId);
-        const orderDetail = await OrderDetail.create({
-          user: req.user._id,
-          product: productDocument._id,
-          quantity: product.quantity,
-          price: productDocument.price,
-          order_id: newOrder._id,
-        });
-        orderDetails.push(orderDetail._id);
-      }
-    }
+    const orderDetails = await createOrderDetails(payload.cart_items, newOrder._id, req.user._id);
 
     // Update order 
     newOrder.order_details = orderDetails;
 
-    // update order_details field
+    // update order_details
     await newOrder.save();
-    console.log('Order ID:', newOrder._id);
+    console.log('Order ID:', newOrder._id);   
 
-    // Clear cart    
-    await clearUserCart(req.user._id);
-
-    // Include order details in the response
     const populatedOrder = await Order.findById(newOrder._id).populate('order_details');
     
     console.log('Order created', populatedOrder);
@@ -103,6 +130,9 @@ const store = async (req, res, next) => {
       message: 'Order created successfully',
       order: populatedOrder,
     });
+
+    // Clear cart    
+    await clearUserCart(req.user._id);
 
   } catch (err) {
     if (err && err.name === 'ValidationError') {
@@ -116,71 +146,68 @@ const store = async (req, res, next) => {
   }
 };
 
-const view = async (req, res, next) => {
+const show = async (req, res, next) => {
   try {
     let { skip = 0, limit = 10 } = req.query;
-    console.log("user ID for order:", req.user._id);
-
-    const orders = await Order.find({ user: req.user._id })
+    const order = await Order
+      .findOne({ user: req.user._id })
       .skip(parseInt(skip))
       .limit(parseInt(limit))
-      .populate('order_details')
-      .sort('-createdAt');
+      .populate({
+        path: 'user',
+        select: 'full_name',
+      })
+      .populate('delivery_address')
+      .populate({
+        path: 'order_details',
+        populate: {
+          path: 'products.productId', 
+          model: 'Product',
+        },
+      });
 
-    if (!orders || orders.length === 0) {
-      return res.json({
+    if (!order) {
+      return res.status(404).json({
         error: 1,
-        message: "Order not found for the user",
+        message: `Order not found for the user`,
       });
     }
 
     // Check user permissions
-    let policy = defineAbilityFor(req.user);
+    const policy = defineAbilityFor(req.user);
     if (!policy.can('read', 'Order')) {
-      return res.json({
+      return res.status(403).json({
         error: 1,
-        message: "You're not allowed to read the order",
+        message: `Invoice is not allowed to be shown.`,
       });
     }
-    console.log({delivery_fee: orders.delivery_fee,
-      status: orders.status,})
-    return res.json({
-      data: {
-        order: orders.toJSON({ virtuals: true }),
-        delivery_fee: orders.delivery_fee,
-        status: orders.status,
-      },
-      count: orders.length
-    });
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res.json({
-        error: 1,
-        message: err.message,
-        fields: err.errors,
-      });
-    }
-    next(err);
-  }
-};
 
-const index = async (req, res, next) => {
-  try {
-    console.log("user ID for order:", req.user._id);
+    // Map order details to the desired format
+    const formattedOrderDetails = order.order_details.map(orderDetail => ({
+      products: orderDetail.products.map(product => ({
+        name: product.productId.name, 
+        price: product.price,
+        quantity: product.quantity,
+      })),
+      sub_total: orderDetail.sub_total,
+      delivery_fee: orderDetail.delivery_fee,
+      total_order: orderDetail.total_order,
+    }));
 
-    // default values
-    const defaultDeliveryFee = 30000;
-    const defaultStatus = 'menunggu pembayaran';
-
-    const defaultOrderData = {
-      status: defaultStatus,
-      delivery_fee: defaultDeliveryFee,
+    const responseData = {
+      user: order.user && order.user.full_name,
+      delivery_address: order.delivery_address,
+      order_details: formattedOrderDetails,
+      status: order.status
     };
 
-    return res.json([defaultOrderData]);
+    return res.json({
+      data: responseData,
+    });
+
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res.json({
+    if (err && err.name === 'ValidationError') {
+      return res.status(400).json({
         error: 1,
         message: err.message,
         fields: err.errors,
@@ -192,6 +219,5 @@ const index = async (req, res, next) => {
 
 module.exports = {
     store,
-    view,
-    index
+    show
 }

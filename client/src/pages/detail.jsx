@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import React, { useCallback, useEffect, useState } from "react";
-import { axiosGet, axiosGetWithToken, axiosPostWithToken } from "../axiosServices";
+import { axiosGet, axiosPostWithToken } from "../axiosServices";
 import Navbar from '../components/navbar';
 
 const Detail = () => {
@@ -25,76 +25,30 @@ const Detail = () => {
   }, [getProductById]);
 
   const addToCart = async () => {
-    console.log("Adding to cart...");
     try {
       if (!isAuthenticated) {
         console.log("User is not authenticated. Redirecting to login page...");
         return;
       }
-  
+
       const cartItem = {
         productId: prodById._id,
         quantity: quantity,
       };
-  
+
       console.log('Adding to cart:', prodById._id, quantity);
       console.log('CartItem:', cartItem);
-  
-      const existingCart = await axiosGetWithToken("/carts");
-  
-      if (existingCart && existingCart._id) {
-        // Cart exists, update it
-        const updatedCart = updateExistingCart(existingCart, cartItem);
-        await updateCartOnServer(updatedCart);
-        
-      } else {
-        // Cart doesn't exist, create it
-        const newCart = createNewCart(cartItem);
-        await createCartOnServer(newCart);
 
+      const response = await axiosPostWithToken("/carts", { products: [cartItem] });
+
+      if (response.data && response.data.cart) {
+        setAddToCartSuccess(true);
+      } else {
+        console.error("Error adding to cart:", response.data && response.data.message);
       }
-      setAddToCartSuccess(true);
     } catch (err) {
       console.error("Error adding to cart:", err);
     }
-  };
-
-  const updateExistingCart = (existingCart, cartItem) => {
-    const updatedCart = {
-      ...existingCart,
-      products: [...existingCart.products],
-    };
-  
-    const existingProductIndex = updatedCart.products.findIndex(
-      p => p.productId.toString() === cartItem.productId.toString()
-    );
-  
-    if (existingProductIndex !== -1) {
-      // Product already exists, update
-      updatedCart.products[existingProductIndex].quantity = cartItem.quantity;
-    } else {
-      // Product not exist, add it to the cart
-      updatedCart.products.push(cartItem);
-    }
-  
-    // Remove products with quantity 0
-    updatedCart.products = updatedCart.products.filter(product => product.quantity > 0);
-  
-    return updatedCart;
-  };
-  
-  const createNewCart = (cartItem) => {
-    return {
-      products: [cartItem],
-    };
-  };
-  
-  const updateCartOnServer = async (updatedCart) => {
-    await axiosPostWithToken("/carts", updatedCart);
-  };
-  
-  const createCartOnServer = async (newCart) => {
-    return await axiosPostWithToken("/carts", newCart);
   };
   
   const increaseQuantity = () => {
@@ -108,6 +62,13 @@ const Detail = () => {
   useEffect(() => {
     setAddToCartSuccess(false);
   }, []);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    }).format(amount);
+  }; 
 
   const handleNavigateToCart = () => {
     console.log("handleNavigateToCart is called.");
@@ -126,19 +87,19 @@ const Detail = () => {
         )}
     <div key={prodById._id}>
       <img
-        className="max-w-full mb-4 rounded"
+        className="h-65 mb-4 rounded mx-auto"
         src={`http://localhost:3001/images/products/${prodById.image_url}`}
         alt={prodById.name}
       />
       <h2 className="text-3xl font-bold mb-2">{prodById.name}</h2>
-      <p className="text-xl mb-2">{`Harga: Rp ${prodById.price}`}</p>
+      <p className="text-xl mb-2">{`Harga: ${formatCurrency(prodById.price)}`}</p>
       <p className="text-gray-700 mb-4">{`Deskripsi: ${prodById.description}`}</p>
       <p className="text-gray-700 mb-4">{`Kategori: ${prodById.category ? prodById.category.name : 'N/A'}`}</p>
       <p className="text-gray-700 mb-4">{`Tags: ${prodById.tags ? prodById.tags.map(tag => tag.name).join(', ') : 'N/A'}`}</p>
     </div>
       <div className="flex items-center mb-4">
         <button
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+          className="bg-cyan-950 text-white py-2 px-4 rounded hover:bg-cyan-700"
           onClick={decreaseQuantity}
         >
           -
@@ -150,20 +111,20 @@ const Detail = () => {
           onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value)))}
         />
         <button
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+          className="bg-cyan-950 text-white py-2 px-4 rounded hover:bg-cyan-700"
           onClick={increaseQuantity}
         >
           +
         </button>
       </div>
       <button
-        className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+        className="bg-cyan-950 text-white py-2 px-4 rounded hover:bg-cyan-700"
         onClick={addToCart}
       >
         Tambah ke keranjang
       </button>
       <button
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+          className="bg-cyan-950 text-white ml-4 py-2 px-4 rounded hover:bg-cyan-700"
           onClick={() => handleNavigateToCart()} 
         >
         Lihat keranjang

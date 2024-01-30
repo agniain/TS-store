@@ -52,6 +52,13 @@ const Product = () => {
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const formatCurrency = (amount) => {
+      return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+      }).format(amount);
+    }; 
+
 
   return (
     <div className="container mx-auto mt-8">
@@ -82,15 +89,17 @@ const Product = () => {
           <div
             key={product._id}
             onClick={() => handleProductClick(product._id)}
-            className="cursor-pointer p-2 md:p-4 border rounded-md transition-all duration-300 hover:shadow-md"
+            className="cursor-pointer p-2 md:p-4 border rounded-md transition-all duration-300 hover:shadow-md hover:opacity-60"
           >
             <img
               src={`http://localhost:3001/images/products/${product.image_url}`}
               alt={product.name}
-              className="mb-2 rounded-md"
+              className="mb-2 h-60 rounded-md object-cover mx-auto"
             />
             <h3 className="text-lg font-semibold">{product.name}</h3>
-            <p className="text-gray-700">Rp {product.price}</p>
+            <p className="text-gray-700">{formatCurrency(product.price)}</p>
+            <p className="text-gray-700">Stok: {product.stock}</p>
+
           </div>
         ))}
       </div>

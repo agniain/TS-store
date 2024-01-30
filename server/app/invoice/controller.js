@@ -5,10 +5,20 @@ const show = async (req, res, next) => {
   try {
     const orderId = req.params.orderId;
 
-    // Find the order and populate the 'order_details' field
     const order = await Order
       .findOne({ _id: orderId, user: req.user._id })
-      .populate('order_details');
+      .populate({
+        path: 'user',
+        select: 'full_name',
+      })
+      .populate('delivery_address')
+      .populate({
+        path: 'order_details',
+        populate: {
+          path: 'products.productId', 
+          model: 'Product',
+        },
+      });
 
     if (!order) {
       return res.status(404).json({
@@ -26,9 +36,27 @@ const show = async (req, res, next) => {
       });
     }
 
-    // Return the order with populated 'order_details'
+    // Map order details 
+    const formattedOrderDetails = order.order_details.map(orderDetail => ({
+      products: orderDetail.products.map(product => ({
+        name: product.productId.name, 
+        price: product.price,
+        quantity: product.quantity,
+      })),
+      sub_total: orderDetail.sub_total,
+      delivery_fee: orderDetail.delivery_fee,
+      total_order: orderDetail.total_order,
+    }));
+
+    const responseData = {
+      user: order.user && order.user.full_name,
+      delivery_address: order.delivery_address,
+      order_details: formattedOrderDetails,
+      created_at: order.createdAt,
+    };
+
     return res.json({
-      data: order.toJSON({ virtuals: true }),
+      data: responseData,
     });
 
   } catch (err) {
@@ -46,5 +74,3 @@ const show = async (req, res, next) => {
 module.exports = {
   show,
 };
-
-  

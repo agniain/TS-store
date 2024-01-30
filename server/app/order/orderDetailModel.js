@@ -5,23 +5,43 @@ const orderDetailSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-  },
-  quantity: {
+  products: [
+    {
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+      },
+      quantity: {
+        type: Number,
+        required: true,
+      },
+      price: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
+
+  sub_total: {
     type: Number,
     required: true,
   },
-  price: {
+
+  delivery_fee: {
     type: Number,
     required: true,
   },
+
+  total_order: {
+    type: Number,
+    required: true,
+  },
+
   order_id: { 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order',
   },
-}, { timestamps: true });
+}, { timestamps: true, strictPopulate: false });
 
 const OrderDetail = mongoose.model('OrderDetail', orderDetailSchema);
 module.exports = OrderDetail;

@@ -25,26 +25,24 @@ const Cart = () => {
   
   useEffect(() => {
     console.log('Cart Items:', cartItems);
-    // Log specific properties
-    cartItems.products?.forEach((item, index) => {
-      console.log(`Item ${index + 1} Products:`, item);
-    });
+  
+    if (cartItems && cartItems.products) {
+      cartItems.products.forEach((item, index) => {
+        console.log(`Item ${index + 1} Products:`, item);
+      });
+    }
   }, [cartItems]);
 
-  const formatCurrency = (value) => {
-    return value.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
-  };  
-  
-  const calculateTotalPrice = (products) => {
-    return products.reduce((total, product) => {
-      return total + product.quantity * (product.productId && product.productId.price);
-    }, 0);
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    }).format(amount);
   };
 
   const handleCheckOut = () => {
     navigate('/orders');
   };
-
 
   return (
     <>
@@ -69,29 +67,31 @@ const Cart = () => {
                       <p>{`x ${product.quantity}`}</p>
                     </div>
                     <div className="w-32">
-                    <p>{`Rp ${formatCurrency(product.productId && product.productId.price)}`}</p>
+                      <p>{` ${formatCurrency(product.productId && product.productId.price)}`}</p>
                     </div>
                   </div>
                 </div>
               ))}
               <div className="mt-4 mb-10">
-                <p className="font-bold">Total Price: Rp {formatCurrency(calculateTotalPrice(cartItems.products))}</p>
+                <p className="font-bold">Total: {formatCurrency(cartItems.sub_total)}</p>
               </div>
-              <button
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
-            onClick={() => handleCheckOut()}>
-            Checkout
-          </button>
+              <div className="flex">
+                <button className="bg-cyan-950 text-white py-2 px-4 rounded hover:bg-cyan-700" onClick={handleCheckOut}>
+                  Checkout
+                </button>
+                <Link to="/" className="bg-cyan-950 text-white py-2 px-4 rounded hover:bg-cyan-700 ml-4">
+                  Kembali
+                </Link>
+              </div>
             </div>
-            
           ) : (
-            <p>Keranjang anda kosong.</p>
+            <>
+              <p className="mb-5">Keranjang anda kosong.</p>
+              <Link to="/" className="bg-cyan-950 text-white py-2 px-4 mt-5 rounded hover:bg-cyan-700">
+                Kembali
+              </Link>
+            </>
           )}
-
-          
-          <Link to="/" className="text-blue-500 hover:underline mt-4">
-            Back
-          </Link>
         </div>
       ) : null}
     </>

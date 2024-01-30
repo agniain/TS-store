@@ -17,6 +17,7 @@ const Login = () => {
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
                 setLoginSuccess(true);
+                navigate('/');
             } else {
                 console.error('Login failed');
             }
@@ -25,29 +26,20 @@ const Login = () => {
         }
     };
 
-    const handleHomeRedirect = () => {
-        navigate('/');
-    };
-
     return (
-        <div className='px-4justify-center items-center'>
-            <h1 className='text-xl mb-4 font-bold'>Log in</h1>
+        <div className='px-4 py-5 max-w-2xl '>
+            <h1 className='text-xl mb-4 font-bold text-center'>Log in</h1>
             <form onSubmit={handleLogin} className='border p-6 flex flex-col items-center'>
-                <div className='grid gap-4 md:grid-cols-2 mb-4'>
+                <div className="container mb-4">                
                     <label htmlFor="email">Email:</label>
-                    <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-
+                    <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="border rounded-md p-2" required />
+                </div>
+                <div className="container mb-4">
                     <label htmlFor="password">Password:</label>
-                    <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="border rounded-md p-2" required />
                 </div>
-                <button type="submit">Login</button>
+                <button type="submit" className='bg-cyan-950 px-6 py-2 text-white text-center rounded hover:bg-cyan-900'>Login</button>
             </form>
-
-            {loginSuccess ? (
-                <div className="mt-4">
-                    <button onClick={handleHomeRedirect}>Kembali</button>
-                </div>
-            ) : null}
         </div>
     );
 };

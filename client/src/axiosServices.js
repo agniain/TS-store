@@ -88,6 +88,15 @@ export const axiosGetUser = (url) => {
     });
 }
 
+export const axiosDeleteToken = (url) => {
+    return axios.delete(`${authURL}${url}`, {
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`,
+        },
+    });
+};
+
 export const axiosDelete = (url) => {
     return axios.delete(`${baseURL}${url}`, {
         headers: {
