@@ -8,29 +8,29 @@ const Product = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState(null);
   const [tags, setTags] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axiosGet("/products");
-        setProducts(response.data.data);
+        const productsResponse = await axiosGet("/products", {
+          page: currentPage,
+          limit: 12,
+        });
+    
+        setProducts(productsResponse.data.data);
+        setTotalPages(Math.ceil(productsResponse.data.count / 12));
+    
+        const tagsResponse = await axiosGet("/tags");
+        setTags(tagsResponse.data);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching data:", error);
       }
     };
-
-    const fetchTags = async () => {
-      try {
-        const response = await axiosGet("/tags");
-        setTags(response.data);
-      } catch (error) {
-        console.error("Error fetching tags:", error);
-      }
-    };
-
-    fetchProducts();
-    fetchTags();
-  }, []); 
+  
+    fetchData();
+  }, [currentPage]); 
 
   const handleTagClick = async (tagId) => {
     try {
@@ -52,13 +52,29 @@ const Product = () => {
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handlePreviousClick = () => {
+      setCurrentPage((prev) => {
+        const newPage = Math.max(prev - 1, 1);
+        console.log('Handling Previous Click. New Page:', newPage);
+        return newPage;
+      });
+    };
+    
+    const handleNextClick = () => {
+      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    };
+
+    useEffect(() => {
+      console.log('Current Page Changed:', currentPage);
+      console.log('Total Pages Changed:', totalPages);
+    }, [currentPage, totalPages]);
+  
     const formatCurrency = (amount) => {
       return new Intl.NumberFormat("id-ID", {
         style: "currency",
         currency: "IDR",
       }).format(amount);
     }; 
-
 
   return (
     <div className="container mx-auto mt-8">
@@ -102,6 +118,21 @@ const Product = () => {
 
           </div>
         ))}
+      </div>
+      <div className="mt-5 flex justify-center items-center">
+        <button 
+          onClick={handlePreviousClick}
+          disabled={currentPage === 1} 
+          className="bg-cyan-950 text-white px-4 py-2 rounded-md mr-2"
+        >
+          Previous
+        </button>
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
+        <button onClick={handleNextClick} disabled={currentPage === totalPages} className="bg-cyan-950 text-white px-4 py-2 rounded-md mr-2">
+          Next
+        </button>
       </div>
     </div>
   );

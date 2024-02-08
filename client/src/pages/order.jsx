@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { axiosGetUser, axiosGetWithToken, axiosPostWithToken } from "../axiosServices";
 import Navbar from "../components/navbar";
+import successGif from "../images/check.gif"
 
 const Order = () => {
   const isAuthenticated = localStorage.getItem("token") !== null;
@@ -100,14 +101,13 @@ const Order = () => {
   return (
     <>
       <Navbar isAuthenticated={isAuthenticated} />
-      <div className="max-w-2xl mx-auto p-4">
+      <div className="max-w-xl mx-auto p-3 mt-4 border">
         {isAuthenticated ? (
           <>
             {!isOrderPlaced ? (
               <>
-                <h2 className="text-3xl font-bold mb-4">Order Details</h2>
-                <div className="font-semibold">{userData && userData.full_name}</div>
-    
+                <h2 className="text-3xl font-bold mb-4">Order Detail</h2>
+                <div className="font-semibold">{userData && userData.full_name}</div>    
                 <div>
                   <h3 className="mt-2">Alamat Pengiriman</h3>
                   <div className="mb-4">
@@ -131,22 +131,29 @@ const Order = () => {
                             <div className="w-24">
                               <p>{`x ${product.quantity}`}</p>
                             </div>
-                            <div className="w-32">
+                            <div className="w-32 ml-2">
                               <p>{` ${formatCurrency(product.productId && product.productId.price)}`}</p>
                             </div>
                           </div>
                         </div>
                       ))}
-                      <div className="mt-4 mb-10">
-                        <p className="font-semibold">Total Harga: {formatCurrency(cartItems.sub_total)}</p>
-                        <p className="font-semibold">Ongkos Kirim: {formatCurrency(cartItems.delivery_fee)}</p>
-                        <p className="font-semibold">Total Pesanan: {formatCurrency(cartItems.total_order)}</p>
+                      <div className="flex mt-4">
+                          <div className="w-80 font-semibold mr-2">Total Harga:</div>
+                          <div> {formatCurrency(cartItems.sub_total)}</div> 
+                      </div>
+                      <div className="flex">
+                          <div className="w-80 font-semibold mr-2">Ongkos Kirim:</div>
+                          <div> {formatCurrency(cartItems.delivery_fee)}</div> 
+                      </div>
+                      <div className="flex">
+                          <div className="w-80 font-semibold mr-2">Total Pesanan:</div>
+                          <div> {formatCurrency(cartItems.total_order)}</div> 
                       </div>
                     </div>
                   )}
     
                   <button
-                    className="bg-cyan-950 text-white py-2 px-4 rounded hover:bg-cyan-700"
+                    className="mt-6 ml-40 bg-cyan-950 text-white py-2 px-4 rounded hover:bg-cyan-700"
                     onClick={placeOrder}
                   >
                     Buat Pesanan
@@ -154,8 +161,14 @@ const Order = () => {
                 </div>
               </>
             ) : (
-              <div className="mt-4">
+              <div className="mt-4 flex flex-col items-center justify-center">
                 <p className="text-black text-xl font-bold">Pesanan berhasil!</p>
+                <img
+                  src={successGif}
+                  alt="Success GIF"
+                  className="mt-4"
+                  style={{ maxWidth: "50%", height: "auto" }}
+                />
                 <div className="mt-4">
                   <button onClick={handleInvoiceRedirect} className="bg-cyan-950 text-white py-2 px-4 rounded hover:bg-cyan-700">
                     Lihat Invoice

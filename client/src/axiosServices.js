@@ -7,16 +7,17 @@ const getToken = () => {
     return localStorage.getItem('token');
 };
 
-export const axiosGet = (url) => {
+export const axiosGet = (url, params) => {
     const resource = baseURL + url;
-    console.log(resource);
-
+    console.log('API Request URL:', resource);
+  
     return axios.get(resource, {
-        headers: {
-            "Content-Type": "application/json",
-        },
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: params,
     });
-};
+  };
 
 export const axiosGetWithToken = (url) => {
     const resource = baseURL + url;

@@ -42,7 +42,7 @@ const Invoice = () => {
   if (!isAuthenticated) {
     // Redirect to login page if not authenticated
     navigate("/login");
-    return null; // or return a loading spinner
+    return null;
   }
 
   const formatCurrency = (amount) => {
@@ -55,13 +55,13 @@ const Invoice = () => {
   return (
     <>
       <Navbar isAuthenticated={isAuthenticated} />
-      <div className="max-w-2xl mx-auto mt-7 mb-7 p-4 border border-gray-300">
-        <h2 className="text-3xl font-bold mb-4">Invoice</h2>
+      <div className="max-w-2xl mx-auto mt-7 mb-7 p-4 border border-gray-300"> 
+        <h2 className="text-2xl font-bold mb-1">Invoice</h2>
+        <p className="font-semibold mb-3">(Invoice Id: {orderId})</p>
         <div>
           <h3 className="font-semibold">Nama:</h3>
           <p>{invoiceData.user}</p>
         </div>
-
         <div>
           <h3 className="mt-3 font-semibold">Alamat:</h3>
           <p>
@@ -81,32 +81,32 @@ const Invoice = () => {
               <div key={index} className="mb-4">
                 {orderDetail.products.map((product, idx) => (
                   <div key={idx}>
-                    <div className="ml-2 flex">
+                    <div className="flex">
                       <div className="w-60">{product.name}</div>
                       <div className="w-20"> x {product.quantity}</div> 
                       <div className="w-40"> {formatCurrency(product.price)}</div>
                     </div>
                   </div>
                 ))}
-                <div className="ml-2 flex mt-4">
+                <div className="flex mt-4">
                     <div className="w-80 font-semibold">Ongkos Kirim:</div>
                     <div> {formatCurrency(orderDetail.delivery_fee)}</div> 
                 </div>
-                <div className="ml-2 flex">
+                <div className="flex">
                     <div className="w-80 font-semibold">Total Order:</div>
                     <div> {formatCurrency(orderDetail.total_order)}</div> 
                 </div>
               </div>
             ))}
         </div>
-        <div className="ml-2 flex">
+        <div className="flex">
             <div className="w-80 font-semibold">Tanggal pemesanan:</div>
             <div> {formatDate(invoiceData.created_at)}</div> 
         </div>     
       </div>
       <Link to="/" className="bg-cyan-950 text-white mx-80 px-5 py-2 rounded hover:bg-cyan-700 mt-10">
           Kembali
-        </Link>
+      </Link>
     </>
   );
 };

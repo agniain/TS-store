@@ -91,8 +91,9 @@ const store = async (req, res, next) => {
 
 const index = async (req, res, next) => {
     try {
-        let { skip = 0, limit = 10, q = '', category = '', tags = '' } = req.query;
+        let { page = 1, limit = 12, q = '', category = '', tags = '' } = req.query;
         
+        let skip = (page - 1) * limit;
         let criteria = {};
 
         if(q.length) {
@@ -117,7 +118,7 @@ const index = async (req, res, next) => {
             }
         }
 
-        let count = await Product.find().countDocuments();
+        let count = await Product.find(criteria).countDocuments();
 
         let product = await Product
         .find(criteria)
@@ -126,9 +127,14 @@ const index = async (req, res, next) => {
         .populate('category')
         .populate('tags');
 
+        // Set Cache-Control header to 'no-store'
+        res.setHeader('Cache-Control', 'no-store');
+
         return res.json({
             data: product,
-            count
+            count,
+            currentPage: parseInt(page),
+            totalPages: Math.ceil(count / limit),
         });
         
     } catch (err) {
@@ -136,6 +142,7 @@ const index = async (req, res, next) => {
         next(err);
     }
 }
+
 
 const view = async (req, res) => {
     try {

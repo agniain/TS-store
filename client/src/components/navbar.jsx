@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShoppingCart } from '@mui/icons-material';
 import { Link, useNavigate } from 'react-router-dom';
-import { axiosDeleteToken } from '../axiosServices';
+import { axiosDeleteToken, axiosGetUser } from '../axiosServices';
 
 
 const Navbar = () => {
   const navigate = useNavigate();
   const isAuthenticated = localStorage.getItem('token') !== null;
+  const [userData, setUserData] = useState(null);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
+
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated]);
+
+  const fetchData = async () => {
+    try {
+      const userRes = await axiosGetUser("/users");
+      setUserData(userRes.data);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    }
+  };
 
   const forDropdown = () => {
     setDropdownVisible(!isDropdownVisible);
@@ -39,9 +56,9 @@ const Navbar = () => {
       <div className="flex space-x-4 ">
         <div className="relative group"> 
           <span className="cursor-pointer text-slate-50 hover:bg-cyan-900 focus:outline-none">
-            KATEGORI
+            Kategori
           </span>
-          <div className="hidden group-hover:block absolute bg-white shadow-md ">
+          <div className="hidden group-hover:block absolute bg-white shadow-md px-1">
             <Link to="/categories/Album/products" className="block py-1">Album</Link>
             <Link to="/categories/T-shirt/products" className="block py-1">T-Shirt</Link>
             <Link to="/categories/Hoodie/products" className="block py-1">Hoodie</Link>
@@ -51,8 +68,8 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <div className="relative group">
               <span onClick={forDropdown}
-                    className="py-1 px-10 text-slate-50 hover:bg-cyan-900 focus:outline-none">
-                AKUN
+                    className="py-1 text-slate-50 cursor-pointer hover:bg-cyan-900 focus:outline-none">
+                {userData && userData.username}
               </span>
               {isDropdownVisible && (
                   <div className="absolute bg-white shadow-md mt-2 p-2">
@@ -66,7 +83,7 @@ const Navbar = () => {
                 )}     
                 <Link
                   to="/carts"
-                  className="py-1 px-6 bg-slate-100 rounded-full border border-slate-700 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-opacity-75"
+                  className="py-1 px-6 ml-4 bg-slate-100 rounded-full border border-slate-700 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-opacity-75"
                 >
                   <ShoppingCart />
                 </Link>
@@ -74,11 +91,11 @@ const Navbar = () => {
         </div>
         ) : (
           <>
-            <Link to='/register' className='px-6 text-slate-50 hover:bg-slate-700'>
-              SIGN UP
+            <Link to='/register' className='text-slate-50 hover:bg-slate-700'>
+              Sign Up
             </Link>
-            <Link to='/login' className='px-6 text-slate-50 hover:bg-slate-700'>
-              LOG IN
+            <Link to='/login' className='text-slate-50 hover:bg-slate-700'>
+              Log In
             </Link>
             <Link to='/carts' className="py-1 px-6 bg-slate-100 rounded-full border border-slate-700 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-opacity-75">
               <ShoppingCart />
